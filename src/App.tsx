@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ShieldCheck, AlertTriangle, Search, Info, Activity, Star, History, List, Clock, Trash2 } from 'lucide-react';
+import { ShieldCheck, AlertTriangle, Search, Info, Activity, Star, History, List, Clock, Trash2, Moon, Sun } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'motion/react';
@@ -63,12 +63,19 @@ export default function App() {
   const [currentResults, setCurrentResults] = useState<ScanResult[]>([]);
   const [history, setHistory] = useState<ScanResult[]>([]);
   const [activeTab, setActiveTab] = useState<'scan' | 'history'>('scan');
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
-  // Load history on mount
+  // Load history and theme on mount
   useEffect(() => {
-    const saved = localStorage.getItem('phishing_history');
-    if (saved) {
-      try { setHistory(JSON.parse(saved)); } catch (e) {}
+    const savedHistory = localStorage.getItem('phishing_history');
+    if (savedHistory) {
+      try { setHistory(JSON.parse(savedHistory)); } catch (e) {}
+    }
+    
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      setIsDarkMode(true);
+      document.documentElement.classList.add('dark');
     }
   }, []);
 
@@ -76,6 +83,20 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('phishing_history', JSON.stringify(history));
   }, [history]);
+
+  const toggleTheme = () => {
+    setIsDarkMode(prev => {
+      const newTheme = !prev;
+      if (newTheme) {
+        document.documentElement.classList.add('dark');
+        localStorage.setItem('theme', 'dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+        localStorage.setItem('theme', 'light');
+      }
+      return newTheme;
+    });
+  };
 
   const analyzeUrls = (e: React.FormEvent) => {
     e.preventDefault();
@@ -165,7 +186,18 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-blue-200 pb-20 overflow-hidden">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 font-sans selection:bg-blue-200 dark:selection:bg-blue-900 pb-20 overflow-hidden transition-colors duration-300">
+      {/* Theme Toggle */}
+      <div className="absolute top-4 right-4 z-50">
+        <button 
+          onClick={toggleTheme}
+          className="p-2 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors"
+          aria-label="Toggle Dark Mode"
+        >
+          {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+        </button>
+      </div>
+
       <div className="max-w-5xl mx-auto px-4 py-12">
         {/* Header */}
         <motion.div 
@@ -178,14 +210,14 @@ export default function App() {
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.2 }}
-            className="inline-flex items-center justify-center p-3 bg-blue-100 rounded-full mb-4"
+            className="inline-flex items-center justify-center p-3 bg-blue-100 dark:bg-blue-900/50 rounded-full mb-4"
           >
-            <ShieldCheck className="w-8 h-8 text-blue-600" />
+            <ShieldCheck className="w-8 h-8 text-blue-600 dark:text-blue-400" />
           </motion.div>
-          <h1 className="text-4xl font-bold tracking-tight text-slate-900 mb-4">
+          <h1 className="text-4xl font-bold tracking-tight text-slate-900 dark:text-white mb-4">
             Phishing URL Detector
           </h1>
-          <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+          <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
             Analyze links for potential threats. Supports bulk scanning and keeps a history of your checks.
           </p>
         </motion.div>
@@ -195,18 +227,18 @@ export default function App() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.3 }}
-          className="flex space-x-2 bg-slate-200/50 p-1.5 rounded-xl mb-8 max-w-md mx-auto relative"
+          className="flex space-x-2 bg-slate-200/50 dark:bg-slate-800/50 p-1.5 rounded-xl mb-8 max-w-md mx-auto relative"
         >
           {['scan', 'history'].map((tab) => (
             <button 
               key={tab}
               onClick={() => setActiveTab(tab as 'scan' | 'history')} 
-              className={`relative flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-semibold rounded-lg transition-colors z-10 ${activeTab === tab ? 'text-blue-700' : 'text-slate-600 hover:text-slate-900'}`}
+              className={`relative flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-semibold rounded-lg transition-colors z-10 ${activeTab === tab ? 'text-blue-700 dark:text-blue-400' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'}`}
             >
               {activeTab === tab && (
                 <motion.div
                   layoutId="activeTab"
-                  className="absolute inset-0 bg-white shadow-sm rounded-lg -z-10"
+                  className="absolute inset-0 bg-white dark:bg-slate-700 shadow-sm rounded-lg -z-10"
                   transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                 />
               )}
@@ -226,7 +258,7 @@ export default function App() {
               transition={{ duration: 0.3 }}
             >
               {/* Search Box */}
-              <Card className="mb-8 shadow-sm border-slate-200 overflow-hidden">
+              <Card className="mb-8 shadow-sm border-slate-200 dark:border-slate-800 dark:bg-slate-900 overflow-hidden">
                 <CardContent className="p-6">
                   <form onSubmit={analyzeUrls} className="relative">
                     <div className="flex flex-col gap-4">
@@ -235,7 +267,7 @@ export default function App() {
                           value={input}
                           onChange={(e) => setInput(e.target.value)}
                           placeholder="Enter URLs to scan (one per line or comma-separated)...&#10;https://example.com&#10;http://suspicious-link.com"
-                          className="block w-full p-4 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all min-h-[120px] resize-y font-mono text-sm"
+                          className="block w-full p-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all min-h-[120px] resize-y font-mono text-sm"
                           required
                         />
                       </div>
@@ -287,8 +319,8 @@ export default function App() {
                   animate="show"
                   className="space-y-6"
                 >
-                  <motion.h3 variants={itemVariants} className="text-xl font-bold text-slate-900 flex items-center gap-2">
-                    <Activity className="w-5 h-5 text-blue-600" /> Scan Results
+                  <motion.h3 variants={itemVariants} className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <Activity className="w-5 h-5 text-blue-600 dark:text-blue-400" /> Scan Results
                   </motion.h3>
                   {currentResults.map(result => (
                     <ResultCard key={result.id} result={result} />
@@ -305,8 +337,8 @@ export default function App() {
               transition={{ duration: 0.3 }}
             >
               <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-                  <Clock className="w-5 h-5 text-blue-600" /> Scan History
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <Clock className="w-5 h-5 text-blue-600 dark:text-blue-400" /> Scan History
                 </h3>
                 <AnimatePresence>
                   {history.length > 0 && (
@@ -315,7 +347,7 @@ export default function App() {
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0, scale: 0.8 }}
                     >
-                      <Button variant="outline" size="sm" onClick={clearHistory} className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200">
+                      <Button variant="outline" size="sm" onClick={clearHistory} className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/30 border-red-200 dark:border-red-900/50">
                         <Trash2 className="w-4 h-4 mr-2" /> Clear History
                       </Button>
                     </motion.div>
@@ -327,10 +359,10 @@ export default function App() {
                 <motion.div 
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="text-center py-12 bg-slate-100 rounded-2xl border border-slate-200 border-dashed"
+                  className="text-center py-12 bg-slate-100 dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700 border-dashed"
                 >
-                  <History className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                  <p className="text-slate-500">No scan history yet.</p>
+                  <History className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
+                  <p className="text-slate-500 dark:text-slate-400">No scan history yet.</p>
                 </motion.div>
               ) : (
                 <motion.div 
@@ -359,16 +391,16 @@ function ResultCard({ result }: { result: ScanResult }) {
     <motion.div variants={result.isPhishing ? dangerVariants : itemVariants} layout>
       <Card className={`border-2 overflow-hidden transition-all duration-300 relative ${
         result.isPhishing 
-          ? 'bg-gradient-to-br from-red-50 via-red-100 to-rose-50 border-red-500 shadow-[0_0_25px_rgba(239,68,68,0.3)] hover:shadow-[0_0_35px_rgba(239,68,68,0.5)]' 
-          : 'bg-emerald-50/30 border-emerald-200 hover:border-emerald-300'
+          ? 'bg-gradient-to-br from-red-50 via-red-100 to-rose-50 dark:from-red-950/40 dark:via-red-900/20 dark:to-rose-950/40 border-red-500 dark:border-red-700 shadow-[0_0_25px_rgba(239,68,68,0.3)] hover:shadow-[0_0_35px_rgba(239,68,68,0.5)]' 
+          : 'bg-emerald-50/30 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/50 hover:border-emerald-300 dark:hover:border-emerald-800'
       }`}>
         {/* Pulsing top border for danger */}
         {result.isPhishing && (
-          <div className="absolute top-0 left-0 w-full h-1 bg-red-600 animate-pulse"></div>
+          <div className="absolute top-0 left-0 w-full h-1 bg-red-600 dark:bg-red-500 animate-pulse"></div>
         )}
         
         <CardContent className="p-0">
-          <div className="p-6 border-b border-slate-200/50 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+          <div className="p-6 border-b border-slate-200/50 dark:border-slate-800/50 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
             <div className="flex items-start gap-4 flex-1 min-w-0">
               <motion.div 
                 initial={{ rotate: -180, scale: 0 }}
@@ -378,7 +410,7 @@ function ResultCard({ result }: { result: ScanResult }) {
                   boxShadow: ["0px 0px 0px rgba(239,68,68,0)", "0px 0px 20px rgba(239,68,68,0.6)", "0px 0px 0px rgba(239,68,68,0)"]
                 } : { rotate: 0, scale: 1 }}
                 transition={result.isPhishing ? { repeat: Infinity, duration: 1.5 } : { type: "spring", stiffness: 200, damping: 15, delay: 0.1 }}
-                className={`p-3 rounded-full shrink-0 ${result.isPhishing ? 'bg-red-600 text-white' : 'bg-emerald-100 text-emerald-600'}`}
+                className={`p-3 rounded-full shrink-0 ${result.isPhishing ? 'bg-red-600 text-white' : 'bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400'}`}
               >
                 {result.isPhishing ? (
                   <AlertTriangle className="w-6 h-6" />
@@ -387,36 +419,36 @@ function ResultCard({ result }: { result: ScanResult }) {
                 )}
               </motion.div>
               <div className="min-w-0 flex-1">
-                <h4 className={`text-lg font-bold mb-1 truncate ${result.isPhishing ? 'text-red-900' : 'text-emerald-800'}`} title={result.url}>
+                <h4 className={`text-lg font-bold mb-1 truncate ${result.isPhishing ? 'text-red-900 dark:text-red-400' : 'text-emerald-800 dark:text-emerald-400'}`} title={result.url}>
                   {result.url}
                 </h4>
                 <div className="flex items-center gap-3 text-sm">
-                  <span className={`font-bold px-2 py-0.5 rounded-md ${result.isPhishing ? 'bg-red-200 text-red-800 uppercase tracking-wide text-xs' : 'text-emerald-600'}`}>
+                  <span className={`font-bold px-2 py-0.5 rounded-md ${result.isPhishing ? 'bg-red-200 dark:bg-red-900/50 text-red-800 dark:text-red-300 uppercase tracking-wide text-xs' : 'text-emerald-600 dark:text-emerald-500'}`}>
                     {result.isPhishing ? 'Critical Phishing Threat' : 'Safe URL'}
                   </span>
-                  <span className="text-slate-400">•</span>
-                  <span className={`font-medium ${result.isPhishing ? 'text-red-700/70' : 'text-slate-500'}`}>
+                  <span className="text-slate-400 dark:text-slate-600">•</span>
+                  <span className={`font-medium ${result.isPhishing ? 'text-red-700/70 dark:text-red-400/70' : 'text-slate-500 dark:text-slate-400'}`}>
                     {new Date(result.timestamp).toLocaleString()}
                   </span>
                 </div>
               </div>
             </div>
             
-            <div className={`flex items-center gap-6 p-4 rounded-xl border shadow-sm shrink-0 w-full lg:w-auto justify-between lg:justify-end ${result.isPhishing ? 'bg-red-50 border-red-200' : 'bg-white border-slate-200'}`}>
+            <div className={`flex items-center gap-6 p-4 rounded-xl border shadow-sm shrink-0 w-full lg:w-auto justify-between lg:justify-end ${result.isPhishing ? 'bg-red-50 dark:bg-red-950/50 border-red-200 dark:border-red-900/50' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800'}`}>
               <div className="text-center">
-                <div className={`text-xs font-bold uppercase tracking-wider mb-1 ${result.isPhishing ? 'text-red-700' : 'text-slate-500'}`}>Risk Score</div>
+                <div className={`text-xs font-bold uppercase tracking-wider mb-1 ${result.isPhishing ? 'text-red-700 dark:text-red-400' : 'text-slate-500 dark:text-slate-400'}`}>Risk Score</div>
                 <motion.div 
                   initial={{ scale: 0.5, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ type: "spring", bounce: 0.5, delay: 0.2 }}
-                  className={`text-3xl font-black ${result.isPhishing ? 'text-red-700 drop-shadow-md' : 'text-emerald-600'}`}
+                  className={`text-3xl font-black ${result.isPhishing ? 'text-red-700 dark:text-red-500 drop-shadow-md' : 'text-emerald-600 dark:text-emerald-500'}`}
                 >
                   {result.riskScore}%
                 </motion.div>
               </div>
-              <div className={`w-px h-10 ${result.isPhishing ? 'bg-red-200' : 'bg-slate-200'}`}></div>
+              <div className={`w-px h-10 ${result.isPhishing ? 'bg-red-200 dark:bg-red-900/50' : 'bg-slate-200 dark:bg-slate-800'}`}></div>
               <div>
-                <div className={`text-xs font-bold uppercase tracking-wider mb-1 ${result.isPhishing ? 'text-red-700' : 'text-slate-500'}`}>Safety Rating</div>
+                <div className={`text-xs font-bold uppercase tracking-wider mb-1 ${result.isPhishing ? 'text-red-700 dark:text-red-400' : 'text-slate-500 dark:text-slate-400'}`}>Safety Rating</div>
                 <div className="flex gap-0.5">
                   {[1, 2, 3, 4, 5].map((star, i) => (
                     <motion.div
@@ -426,7 +458,7 @@ function ResultCard({ result }: { result: ScanResult }) {
                       transition={{ delay: 0.3 + (i * 0.05) }}
                     >
                       <Star 
-                        className={`w-5 h-5 ${star <= result.stars ? (result.stars <= 2 ? 'text-red-600 fill-red-600 drop-shadow-sm' : result.stars === 3 ? 'text-yellow-500 fill-yellow-500' : 'text-emerald-500 fill-emerald-500') : (result.isPhishing ? 'text-red-200' : 'text-slate-200')}`} 
+                        className={`w-5 h-5 ${star <= result.stars ? (result.stars <= 2 ? 'text-red-600 dark:text-red-500 fill-red-600 dark:fill-red-500 drop-shadow-sm' : result.stars === 3 ? 'text-yellow-500 fill-yellow-500' : 'text-emerald-500 fill-emerald-500') : (result.isPhishing ? 'text-red-200 dark:text-red-900/50' : 'text-slate-200 dark:text-slate-800')}`} 
                       />
                     </motion.div>
                   ))}
@@ -435,10 +467,10 @@ function ResultCard({ result }: { result: ScanResult }) {
             </div>
           </div>
 
-          <div className={`p-6 ${result.isPhishing ? 'bg-red-50/50' : 'bg-white/50'}`}>
+          <div className={`p-6 ${result.isPhishing ? 'bg-red-50/50 dark:bg-red-950/30' : 'bg-white/50 dark:bg-slate-900/50'}`}>
             <div className="flex items-center gap-2 mb-4">
-              <Info className={`w-4 h-4 ${result.isPhishing ? 'text-red-500' : 'text-slate-500'}`} />
-              <h5 className={`text-sm font-bold ${result.isPhishing ? 'text-red-900' : 'text-slate-700'}`}>Feature Analysis</h5>
+              <Info className={`w-4 h-4 ${result.isPhishing ? 'text-red-500 dark:text-red-400' : 'text-slate-500 dark:text-slate-400'}`} />
+              <h5 className={`text-sm font-bold ${result.isPhishing ? 'text-red-900 dark:text-red-300' : 'text-slate-700 dark:text-slate-300'}`}>Feature Analysis</h5>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
               <FeatureItem label="Domain Age" value={result.features.domainAgeDays < 30 ? '< 1 Month' : result.features.domainAgeDays < 365 ? '< 1 Year' : `${Math.floor(result.features.domainAgeDays / 365)} Years`} isWarning={result.features.domainAgeDays < 180} delay={0.4} />
@@ -464,10 +496,10 @@ function FeatureItem({ label, value, isWarning, delay }: { label: string, value:
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ delay }}
-      className={`p-3 rounded-lg border ${isWarning ? 'bg-red-100 border-red-300 shadow-inner' : 'bg-slate-50 border-slate-200'}`}
+      className={`p-3 rounded-lg border ${isWarning ? 'bg-red-100 dark:bg-red-900/30 border-red-300 dark:border-red-800/50 shadow-inner' : 'bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700'}`}
     >
-      <div className={`text-xs font-bold mb-1 ${isWarning ? 'text-red-700' : 'text-slate-500'}`}>{label}</div>
-      <div className={`text-lg font-black ${isWarning ? 'text-red-900' : 'text-slate-900'}`}>
+      <div className={`text-xs font-bold mb-1 ${isWarning ? 'text-red-700 dark:text-red-400' : 'text-slate-500 dark:text-slate-400'}`}>{label}</div>
+      <div className={`text-lg font-black ${isWarning ? 'text-red-900 dark:text-red-300' : 'text-slate-900 dark:text-slate-100'}`}>
         {value}
       </div>
     </motion.div>

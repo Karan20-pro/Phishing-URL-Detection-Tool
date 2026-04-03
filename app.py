@@ -90,6 +90,47 @@ HTML_TEMPLATE = """
         
         .feature-value { font-size: 1.1rem; font-weight: 900; }
         .phishing .feature-value { color: #7f1d1d; }
+
+        /* Dark Mode Support */
+        @media (prefers-color-scheme: dark) {
+            body { background-color: #020617; color: #f8fafc; }
+            .container { background-color: #0f172a; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5); }
+            h1 { color: #f8fafc; }
+            .subtitle { color: #94a3b8; }
+            textarea { background-color: #020617; color: #f8fafc; border-color: #1e293b; }
+            textarea:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.4); }
+            .tabs { background: #1e293b; }
+            .tab { color: #94a3b8; }
+            .tab.active { background: #334155; color: #60a5fa; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+            
+            .result-card { border-color: #1e293b; }
+            .result-card.safe { background-color: rgba(5, 150, 105, 0.1); border-color: rgba(5, 150, 105, 0.2); }
+            .result-card.phishing { 
+                background: linear-gradient(to bottom right, rgba(153, 27, 27, 0.2), rgba(127, 29, 29, 0.1)); 
+                border-color: #b91c1c; 
+            }
+            
+            .header-row { border-bottom-color: rgba(255,255,255,0.05); }
+            .phishing .url-title { color: #fca5a5; }
+            
+            .stats-box { background: #1e293b; box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+            .phishing .stats-box { background-color: rgba(127, 29, 29, 0.3); border-color: rgba(153, 27, 27, 0.5); }
+            
+            .stat-label { color: #94a3b8; }
+            .phishing .stat-label { color: #fca5a5; }
+            
+            .stat-value { color: #f8fafc; }
+            .phishing .stat-value { color: #f87171; }
+            
+            .feature-card { background-color: rgba(30, 41, 59, 0.6); border-color: rgba(255, 255, 255, 0.05); }
+            .phishing .feature-card { background-color: rgba(127, 29, 29, 0.2); border-color: rgba(153, 27, 27, 0.3); }
+            
+            .feature-label { color: #94a3b8; }
+            .phishing .feature-label { color: #fca5a5; }
+            
+            .feature-value { color: #f8fafc; }
+            .phishing .feature-value { color: #fecaca; }
+        }
     </style>
 </head>
 <body>
