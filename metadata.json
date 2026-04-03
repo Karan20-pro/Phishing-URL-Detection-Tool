@@ -1,0 +1,5 @@
+{
+  "name": "Phishing URL Detector",
+  "description": "A tool to analyze URLs and detect potential phishing threats using feature extraction.",
+  "requestFramePermissions": []
+}
